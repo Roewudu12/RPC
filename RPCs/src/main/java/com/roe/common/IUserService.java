@@ -7,4 +7,5 @@ package com.roe.common;
  **/
 public interface IUserService {
     public User findUserById(Integer id);
+    public User findUserByName(String name);
 }

@@ -1,9 +1,11 @@
-package com.roe.rpc04.service;
+package com.roe.rpc06.service;
 
 import com.roe.common.IUserService;
-import com.roe.common.User;
 
-import java.io.*;
+import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 import java.lang.reflect.Method;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -32,23 +34,30 @@ public class Service {
         InputStream in= s.getInputStream();
         OutputStream out = s.getOutputStream();
         //获取输入输出对象
-        ObjectInputStream oos = new ObjectInputStream(in);
-        DataOutputStream dos = new DataOutputStream(out);
+        ObjectInputStream ois = new ObjectInputStream(in);
+        ObjectOutputStream oos = new ObjectOutputStream(out);
 
         //获取方法名等信息，反射调用方法
-        String methodName = oos.readUTF();
-        Class[] parameterTypes = (Class[]) oos.readObject();
-        Object[] args = (Object[]) oos.readObject();
+        String clazzName = ois.readUTF();
+        String methodName = ois.readUTF();
+        Class[] parameterTypes = (Class[]) ois.readObject();
+        Object[] args = (Object[]) ois.readObject();
+
+        /**
+         * 此部分可用spring注入
+         */
+        Class clazz = null;
+        //从服务注册表找到具体类
+        clazz = UserServiceImpl.class;
+        /*********************************/
 
         //反射
-        IUserService service = new UserServiceImpl();
-        Method method = service.getClass().getMethod(methodName,parameterTypes);
-        User invoke = (User)method.invoke(service, args);
+        Method method = clazz.getMethod(methodName,parameterTypes);
+        Object invoke = method.invoke(clazz.newInstance(), args);
 
         //发送给客户端
-        dos.writeInt(invoke.getId());
-        dos.writeUTF(invoke.getName());
-        dos.flush();
+        oos.writeObject(invoke);
+        oos.flush();
 
     }
 }

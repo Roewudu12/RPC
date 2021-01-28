@@ -13,4 +13,5 @@ public class UserServiceImpl implements IUserService {
     public User findUserById(Integer id) {
         return new User(id,"Alice");
     }
+    public User findUserByName(String name){return new User(111,name);}
 }

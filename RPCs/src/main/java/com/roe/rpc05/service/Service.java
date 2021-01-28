@@ -1,4 +1,4 @@
-package com.roe.rpc04.service;
+package com.roe.rpc05.service;
 
 import com.roe.common.IUserService;
 import com.roe.common.User;
@@ -32,23 +32,22 @@ public class Service {
         InputStream in= s.getInputStream();
         OutputStream out = s.getOutputStream();
         //获取输入输出对象
-        ObjectInputStream oos = new ObjectInputStream(in);
-        DataOutputStream dos = new DataOutputStream(out);
+        ObjectInputStream ois = new ObjectInputStream(in);
+        ObjectOutputStream oos = new ObjectOutputStream(out);
 
         //获取方法名等信息，反射调用方法
-        String methodName = oos.readUTF();
-        Class[] parameterTypes = (Class[]) oos.readObject();
-        Object[] args = (Object[]) oos.readObject();
+        String methodName = ois.readUTF();
+        Class[] parameterTypes = (Class[]) ois.readObject();
+        Object[] args = (Object[]) ois.readObject();
 
         //反射
         IUserService service = new UserServiceImpl();
         Method method = service.getClass().getMethod(methodName,parameterTypes);
-        User invoke = (User)method.invoke(service, args);
+        Object invoke = method.invoke(service, args);
 
         //发送给客户端
-        dos.writeInt(invoke.getId());
-        dos.writeUTF(invoke.getName());
-        dos.flush();
+        oos.writeObject(invoke);
+        oos.flush();
 
     }
 }

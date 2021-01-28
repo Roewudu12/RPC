@@ -1,11 +1,10 @@
-package com.roe.rpc04.client;
+package com.roe.rpc05.client;
 
 import com.roe.common.IUserService;
 import com.roe.common.User;
 
-import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
-import java.io.DataOutputStream;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -37,11 +36,11 @@ public class Stub {
                 oos.flush();
 
                 //获取从服务器传递回来的信息
-                DataInputStream dis = new DataInputStream(s.getInputStream());
-                int id = dis.readInt();
-                String name = dis.readUTF();
-                User user = new User(id,name);
-                return user;
+                ObjectInputStream ois = new ObjectInputStream(s.getInputStream());
+                Object o = ois.readObject();
+                ois.close();
+                s.close();
+                return o;
             }
         };
         //创建动态代理对象
