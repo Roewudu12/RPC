@@ -3,6 +3,7 @@ package com.roe.rpc01.client;
 
 import com.roe.common.User;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;

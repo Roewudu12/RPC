@@ -1,0 +1,54 @@
+package com.roe.rpc07_hessian.client;
+
+import com.roe.common.IUserService;
+import com.roe.rpc07_hessian.RpcRequest;
+import com.roe.rpc07_hessian.Utils.HessianUtil;
+
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+import java.net.Socket;
+
+/**
+ * @Auther: HP
+ * @Date: 2021/1/5 16:54
+ * @Description:动态代理，动态调用服务器方法。通过网络传递方法名、参数等信息到服务器端
+ * 较rpc05获取任何普通对象
+ **/
+
+public class Stub {
+    public static Object getStub(final Class clazz){
+        //动态代理的Handler
+        InvocationHandler h = new InvocationHandler() {
+            public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+                //链接网络将信息发送到服务器端
+                Socket s= new Socket("127.0.0.1",8888);
+
+
+                //获取接口名字
+                String clazzName = clazz.getName();
+                //传递方法名称以及参数等信息
+                String methodName = method.getName();
+                Class<?>[] parameterTypes = method.getParameterTypes();
+                byte[] serialize = HessianUtil.serialize(new RpcRequest(clazzName, methodName, parameterTypes, args));
+                s.getOutputStream().write(serialize);
+                s.getOutputStream().flush();
+
+                //获取从服务器传递回来的信息
+                byte[] buffer = new byte[1024];
+                s.getInputStream().read(buffer);
+                Object o = HessianUtil.deserialize(buffer);
+                s.close();
+                return o;
+            }
+        };
+        //创建动态代理对象
+        Object o = Proxy.newProxyInstance(IUserService.class.getClassLoader(),new Class[]{IUserService.class},h);
+        System.out.println(o.getClass().getName());
+        System.out.println(o.getClass().getInterfaces()[0]);
+        return  o;
+    }
+
+}
